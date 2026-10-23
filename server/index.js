@@ -36,12 +36,10 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ error: "messages is required" });
     }
 
-    const trimmed = messages
-      .slice(-20)
-      .map((m) => ({
-        role: m.role === "assistant" ? "assistant" : "user",
-        content: String(m.content),
-      }));
+    const trimmed = messages.slice(-20).map((m) => ({
+      role: m.role === "assistant" ? "assistant" : "user",
+      content: String(m.content),
+    }));
 
     const response = await client.messages.create({
       model: MODEL,
@@ -281,9 +279,14 @@ app.post("/api/tts", async (req, res) => {
 
 app.get("/api/health", (_req, res) => res.json({ ok: true, tts: provider() }));
 
+// Vercel runs the exported app as a serverless function; only listen locally.
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () =>
-  console.log(
-    `Server running on http://localhost:${PORT} (voice engine: ${provider()})`,
-  ),
-);
+if (!process.env.VERCEL) {
+  app.listen(PORT, () =>
+    console.log(
+      `Server running on http://localhost:${PORT} (voice engine: ${provider()})`,
+    ),
+  );
+}
+
+export default app;
